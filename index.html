@@ -1,9 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Roso Tuban - Self Photobooth</title>
+<style>
+  /* Reset & base */
+  * {
+    box-sizing: border-box;
+  }
+  body, html {
+    margin: 0; padding: 0;
+    height: 100%;
+    background-color: #fafae4;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: #37472E;
+  }
+
+  /* Container to center content vertically and horizontally */
+  #app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* Landing Page */
+  #landing {
+    text-align: center;
+    width: 100%;
+    padding: 2.5rem 1rem 3rem;
+    background-color: #ffffffcc;
+    border-radius: 18px;
+    box-shadow: 0 8px 20px rgba(4, 121, 84, 0.15);
+    user-select: none;
+  }
+
+  h1 {
+    font-size: 3.8rem;
+    font-weight: 700;
+    margin: 0 0 0.6em;
+    line-height: 1.1;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    color: #37472E;
+  }
+
+  #landing-text {
+    font-size: 1.2rem;
+    color: #566a3a;
+    margin: 0 0 1.8em;
+    font-weight: 600;
+  }
+
+  /* Buttons */
+  .button {
+    background-color: #047954;
+    color: #fff;
+    border: none;
+    padding: 1.15em 3.2em;
+    margin: 0 auto 2.5em auto;
+    border-radius: 30px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+    min-width: 220px;
+    box-shadow: 0 5px 12px rgba(4,121,84,.4);
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    display: inline-block;
+  }
+  .button:hover:not(:disabled),
+  .button:focus:not(:disabled) {
+    background-color: #059a6a;
+    outline: none;
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(5,154,106,0.6);
+  }
+  .button:active:not(:disabled) {
+    transform: scale(0.98);
+    box-shadow: 0 4px 10px rgba(5,154,106,0.4);
+  }
+  .button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+
+  /* Frame preview under landing */
+  #frame-preview {
+    width: 170px;
+    max-width: 100%;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(50,70,0,0.25);
+    transition: transform 0.3s ease;
+    display: block;
+    margin: 0 auto;
+  }
+  #frame-preview:hover {
+    transform: scale(1.05);
+  }
+
+  /* Camera Container */
+  #camera-container {
+    position: relative;
+    display: none;
+    max-width: 420px;
+    width: 90vw;
+    aspect-ratio: 1 / 1;
+    background: #222;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(50,70,0,0.6);
+  }
+
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #111;
+  }
+
+  /* Transparent frame overlay */
+  #overlay-frame {
+    pointer-events: none;
+    user-select: none;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban.png?updatedAt=1747645295166');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  /* Controls */
+  #camera-controls {
+    margin-top: 15px;
+    display: none;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  /* Preview Container */
+  #preview-container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    max-width: 400px;
+    width: 90vw;
+  }
+
+  #photo-preview {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+    box-shadow: 0 0 18px rgba(50,70,0,0.45);
+    user-select: none;
+    transition: transform 0.3s ease;
+  }
+  #photo-preview:hover {
+    transform: scale(1.02);
+  }
+
+  #preview-buttons {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  /* Loader spinner */
+  #loader {
+    display: none;
+    border: 6px solid #f3f3f3; /* Light grey */
+    border-top: 6px solid #047954;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    animation: spin 1s linear infinite;
+    margin: 15px auto;
+  }
+
+  /* Timer text */
+  #countdown {
+    font-size: 3rem;
+    color: #047954;
+    font-weight: 800;
+    user-select: none;
+    margin-top: 10px;
+    height: 45px;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+  }
+
+  /* Print styles */
+  @media print {
+    @page {
+      margin: 0;
+      size: 10cm 10cm;
+    }
+    body {
+      margin: 0; padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 10cm;
+      width: 10cm;
+    }
+    img#print-image {
+      width: 10cm;
+      height: 10cm;
+      object-fit: contain;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-print-color-adjust: exact;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="app-container">
+
+  <!-- Landing Page -->
+  <main id="landing">
+    <h1>Roso Tuban</h1>
+    <button id="start-btn" class="button" type="button">Mulai Foto</button>
+    <p id="landing-text">Jejak Budaya, Pesona Wisata</p>
+    <img id="frame-preview" src="https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban.png?updatedAt=1747645295166" alt="Frame Tuban" draggable="false" />
+  </main>
+
+  <!-- Camera Container -->
+  <section id="camera-section" aria-label="Kamera Selfie">
+    <div id="camera-container" aria-live="polite" aria-busy="false">
+      <video id="video" autoplay playsinline></video>
+      <div id="overlay-frame" aria-hidden="true"></div>
+    </div>
+    <div id="countdown" role="timer" aria-live="assertive" aria-atomic="true"></div>
+    <div id="loader" role="alert" aria-live="assertive" aria-atomic="true" aria-label="Loading"></div>
+    <div id="camera-controls">
+      <button id="take-photo-btn" class="button" type="button">Ambil Foto</button>
+    </div>
+  </section>
+
+  <!-- Preview Photo -->
+  <section id="preview-container" aria-label="Preview foto">
+    <img id="photo-preview" alt="Preview foto hasil selfie" draggable="false" />
+    <div id="preview-buttons">
+      <button id="retake-btn" class="button" type="button">Ulangi Foto</button>
+      <button id="print-btn" class="button" type="button">Cetak Foto</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- Hidden Canvas -->
+<canvas id="canvas" style="display:none;"></canvas>
+
 <script>
   const landing = document.getElementById('landing');
   const startBtn = document.getElementById('start-btn');
   const cameraSection = document.getElementById('camera-section');
   const cameraContainer = document.getElementById('camera-container');
   const video = document.getElementById('video');
+  const overlayFrame = document.getElementById('overlay-frame');
   const loader = document.getElementById('loader');
   const countdown = document.getElementById('countdown');
   const cameraControls = document.getElementById('camera-controls');
@@ -31,7 +306,7 @@
     landing.style.display = 'none';
 
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
+      stream = await navigator.mediaDevices.getUser Media({
         video: {
           facingMode: "user",
           width: { ideal: 1280 },
@@ -39,12 +314,13 @@
         },
         audio: false
       });
-
       video.srcObject = stream;
-
       cameraContainer.setAttribute('aria-busy', 'true');
+
       await new Promise(resolve => {
-        video.onloadedmetadata = () => resolve();
+        video.onloadedmetadata = () => {
+          resolve();
+        };
       });
 
       cameraContainer.setAttribute('aria-busy', 'false');
@@ -131,8 +407,14 @@
     stopCamera();
   }
 
-  startBtn.addEventListener('click', () => startCamera());
-  takePhotoBtn.addEventListener('click', () => takePhoto());
+  startBtn.addEventListener('click', () => {
+    startCamera();
+  });
+
+  takePhotoBtn.addEventListener('click', () => {
+    takePhoto();
+  });
+
   retakeBtn.addEventListener('click', () => {
     previewContainer.style.display = 'none';
     startCamera();
@@ -140,6 +422,7 @@
 
   printBtn.addEventListener('click', () => {
     if (!photoPreview.src) return;
+
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
       <html>
@@ -172,10 +455,13 @@
         <script>
           window.onload = () => { setTimeout(() => { window.print(); }, 300); };
           window.onafterprint = () => { window.close(); };
-        <\/script>
+        </script>
       </body>
       </html>
     `);
     printWindow.document.close();
   });
 </script>
+
+</body>
+</html>
