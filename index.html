@@ -1,60 +1,54 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Roso Tuban - Self Photobooth</title>
 
   <style>
-    @font-face {
-      font-family: 'Caneladeck';
-      src: url('Caneladeck-Medium.woff2') format('woff2'); /* Ganti jika perlu */
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
     body, html {
-      margin: 0; padding: 0; height: 100%;
-      background-color: #fafae4;
+      margin: 0;
+      padding: 0;
       font-family: 'Segoe UI', sans-serif;
+      background-color: #fafae4;
       color: #37472E;
     }
 
     #app-container {
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
+      padding: 2rem;
       min-height: 100vh;
-      padding: 1.5rem;
+      justify-content: center;
+    }
+
+    #landing, #camera-section, #preview-section {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
     }
 
     #landing {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 1.2rem;
     }
 
     h1 {
-      font-size: 3rem;
-      font-family: 'Caneladeck', serif;
+      font-size: 2.5rem;
       margin: 0;
+      font-weight: bold;
     }
 
     .button {
       background-color: #047954;
-      color: #fff;
+      color: white;
       padding: 0.8em 1.6em;
       border-radius: 30px;
-      font-size: 1.2rem;
-      cursor: pointer;
-      font-weight: bold;
       border: none;
-      transition: 0.2s ease;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
     .button:hover {
@@ -62,52 +56,30 @@
       transform: scale(1.05);
     }
 
-    #camera-container, #preview-container {
-      display: none;
-      width: 100%;
-      max-width: 420px;
-      aspect-ratio: 1/1;
-      background: #111;
-      position: relative;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
     video, #photo-preview {
       width: 100%;
-      height: 100%;
+      max-width: 400px;
+      aspect-ratio: 1/1;
+      border-radius: 12px;
       object-fit: cover;
+      background-color: black;
+      position: relative;
     }
 
     #overlay-frame {
       position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: url('https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban.png?updatedAt=1747645295166') center/contain no-repeat;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 400px;
       pointer-events: none;
     }
 
     #countdown {
       font-size: 2.5rem;
       font-weight: bold;
-      text-align: center;
       color: #047954;
-      margin-top: 10px;
-    }
-
-    #loader {
-      display: none;
-      border: 6px solid #f3f3f3;
-      border-top: 6px solid #047954;
-      border-radius: 50%;
-      width: 48px; height: 48px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg);}
-      100% { transform: rotate(360deg);}
     }
 
     canvas {
@@ -115,136 +87,136 @@
     }
   </style>
 </head>
-
 <body>
-<div id="app-container">
-  <main id="landing">
-    <h1>Roso Tuban</h1>
-    <p style="margin:0">Jejak Budaya, Pesona Wisata</p>
-    <img src="https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban.png?updatedAt=1747645295166" style="width:160px; border-radius:14px;">
-    <button class="button" id="start-btn">Mulai Foto</button>
-  </main>
 
-  <section id="camera-container">
-    <video autoplay playsinline id="video"></video>
-    <div id="overlay-frame"></div>
+<div id="app-container">
+
+  <!-- LANDING PAGE -->
+  <section id="landing">
+    <h1>Roso Tuban</h1>
+    <p>Jejak Budaya, Pesona Wisata</p>
+    <img src="https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban.png?updatedAt=1747645295166" style="width:150px; border-radius:14px;">
+    <button class="button" id="start-btn">Mulai Foto</button>
   </section>
 
-  <div id="countdown"></div>
-  <div id="loader"></div>
+  <!-- CAMERA PAGE -->
+  <section id="camera-section">
+    <div style="position: relative;">
+      <video id="video" autoplay playsinline></video>
+      <img id="overlay-frame" src="https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban.png?updatedAt=1747645295166" alt="">
+    </div>
+    <div id="countdown"></div>
+    <button class="button" id="capture-btn">Ambil Foto</button>
+  </section>
 
-  <div id="camera-controls" style="display:none;">
-    <button class="button" id="take-photo-btn">Ambil Foto</button>
-  </div>
-
-  <section id="preview-container">
-    <img id="photo-preview" alt="Hasil Foto" />
-    <div>
+  <!-- PREVIEW PAGE -->
+  <section id="preview-section">
+    <img id="photo-preview" alt="Hasil Foto">
+    <div style="display: flex; gap: 1rem;">
       <button class="button" id="retake-btn">Ulangi</button>
       <button class="button" id="print-btn">Cetak</button>
     </div>
   </section>
 
   <canvas id="canvas"></canvas>
+
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const startBtn = document.getElementById('start-btn');
-    const cameraContainer = document.getElementById('camera-container');
-    const previewContainer = document.getElementById('preview-container');
-    const photoPreview = document.getElementById('photo-preview');
-    const countdown = document.getElementById('countdown');
-    const loader = document.getElementById('loader');
-    const takePhotoBtn = document.getElementById('take-photo-btn');
-    const retakeBtn = document.getElementById('retake-btn');
-    const printBtn = document.getElementById('print-btn');
-    const cameraControls = document.getElementById('camera-controls');
-    let stream = null;
+  const landing = document.getElementById('landing');
+  const cameraSection = document.getElementById('camera-section');
+  const previewSection = document.getElementById('preview-section');
+  const startBtn = document.getElementById('start-btn');
+  const captureBtn = document.getElementById('capture-btn');
+  const retakeBtn = document.getElementById('retake-btn');
+  const printBtn = document.getElementById('print-btn');
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const photoPreview = document.getElementById('photo-preview');
+  const countdown = document.getElementById('countdown');
 
-    async function startCamera() {
-      try {
-        loader.style.display = 'block';
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-        video.srcObject = stream;
-        document.getElementById('landing').style.display = 'none';
-        cameraContainer.style.display = 'block';
-        cameraControls.style.display = 'block';
-        loader.style.display = 'none';
-      } catch (e) {
-        alert('Kamera tidak bisa diakses. Pastikan izin kamera sudah diberikan.');
-      }
+  let stream = null;
+
+  async function startCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      video.srcObject = stream;
+      await new Promise(r => video.onloadedmetadata = r);
+    } catch (err) {
+      alert('Kamera tidak dapat diakses. Pastikan izin diberikan.');
     }
+  }
 
-    function stopCamera() {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-      }
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
     }
+  }
 
-    function startCountdown(seconds = 3) {
-      return new Promise(resolve => {
-        let count = seconds;
-        countdown.textContent = count;
-        const timer = setInterval(() => {
-          count--;
-          countdown.textContent = count > 0 ? count : '';
-          if (count <= 0) {
-            clearInterval(timer);
-            resolve();
-          }
-        }, 1000);
-      });
+  async function showCountdown(seconds = 3) {
+    for (let i = seconds; i > 0; i--) {
+      countdown.textContent = i;
+      await new Promise(r => setTimeout(r, 1000));
     }
+    countdown.textContent = '';
+  }
 
-    async function takePhoto() {
-      takePhotoBtn.disabled = true;
-      await startCountdown(3);
-      const ctx = canvas.getContext('2d');
-      const size = Math.min(video.videoWidth, video.videoHeight);
-      canvas.width = canvas.height = size;
-      ctx.drawImage(video, (video.videoWidth - size) / 2, (video.videoHeight - size) / 2, size, size, 0, 0, size, size);
+  async function takePhoto() {
+    await showCountdown(3);
 
-      const frame = new Image();
-      frame.src = 'https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban%202.png?updatedAt=1747658946104';
-      await new Promise(r => frame.onload = r);
-      ctx.drawImage(frame, 0, 0, size, size);
+    const ctx = canvas.getContext('2d');
+    const width = video.videoWidth;
+    const height = video.videoHeight;
+    const size = Math.min(width, height);
+    canvas.width = size;
+    canvas.height = size;
 
-      photoPreview.src = canvas.toDataURL('image/png');
-      cameraContainer.style.display = 'none';
-      cameraControls.style.display = 'none';
-      previewContainer.style.display = 'block';
-      stopCamera();
-      takePhotoBtn.disabled = false;
-    }
+    ctx.drawImage(video, (width - size) / 2, (height - size) / 2, size, size, 0, 0, size, size);
 
-    startBtn.onclick = () => startCamera();
-    takePhotoBtn.onclick = () => takePhoto();
-    retakeBtn.onclick = () => {
-      previewContainer.style.display = 'none';
-      startCamera();
-    };
-    printBtn.onclick = () => {
-      const win = window.open('', '_blank');
-      win.document.write(`
-        <html><head><style>
-          body { margin: 0; }
-          img { width: 10cm; height: 10cm; object-fit: cover; }
-          @page { size: 10cm 10cm; margin: 0; }
-        </style></head>
-        <body><img src="${photoPreview.src}" /></body>
-        <script>
-          window.onload = () => setTimeout(() => { window.print(); }, 300);
-          window.onafterprint = () => window.close();
-        </script>
-        </html>
-      `);
-      win.document.close();
-    };
-  });
+    const frame = new Image();
+    frame.src = 'https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban%202.png?updatedAt=1747658946104';
+    await new Promise(r => frame.onload = r);
+    ctx.drawImage(frame, 0, 0, size, size);
+
+    photoPreview.src = canvas.toDataURL('image/png');
+    stopCamera();
+    cameraSection.style.display = 'none';
+    previewSection.style.display = 'flex';
+  }
+
+  // Event Handlers
+  startBtn.onclick = async () => {
+    landing.style.display = 'none';
+    cameraSection.style.display = 'flex';
+    await startCamera();
+  };
+
+  captureBtn.onclick = takePhoto;
+
+  retakeBtn.onclick = async () => {
+    previewSection.style.display = 'none';
+    cameraSection.style.display = 'flex';
+    await startCamera();
+  };
+
+  printBtn.onclick = () => {
+    const win = window.open('', '_blank');
+    win.document.write(`
+      <html><head><style>
+        body { margin: 0; }
+        img { width: 10cm; height: 10cm; object-fit: cover; }
+        @page { size: 10cm 10cm; margin: 0; }
+      </style></head>
+      <body><img src="${photoPreview.src}" /></body>
+      <script>
+        window.onload = () => setTimeout(() => { window.print(); }, 300);
+        window.onafterprint = () => window.close();
+      </script>
+      </html>
+    `);
+    win.document.close();
+  };
 </script>
+
 </body>
 </html>
