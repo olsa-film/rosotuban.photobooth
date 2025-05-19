@@ -8,48 +8,53 @@
   <style>
     @font-face {
       font-family: 'Caneladeck';
-      src: url('Caneladeck-Medium.woff2') format('woff2'); /* Ganti dengan path ke font Anda */
-      font-weight: normal;
-      font-style: normal;
+      src: url('Caneladeck-Medium.woff2') format('woff2'); /* Ganti jika perlu */
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body, html {
       margin: 0; padding: 0; height: 100%;
       background-color: #fafae4;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       color: #37472E;
     }
 
     #app-container {
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 1.5rem 1rem;
-      max-width: 480px;
-      margin: 0 auto;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    #landing {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1.2rem;
     }
 
     h1 {
-      font-size: 3.5rem;
+      font-size: 3rem;
       font-family: 'Caneladeck', serif;
-      margin-bottom: 0.6em;
-      text-align: center;
-      color: #37472E;
+      margin: 0;
     }
 
     .button {
       background-color: #047954;
       color: #fff;
-      padding: 1em 2em;
+      padding: 0.8em 1.6em;
       border-radius: 30px;
       font-size: 1.2rem;
       cursor: pointer;
       font-weight: bold;
       border: none;
-      margin: 10px;
-      transition: all 0.2s ease;
+      transition: 0.2s ease;
     }
 
     .button:hover {
@@ -82,6 +87,14 @@
       pointer-events: none;
     }
 
+    #countdown {
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      color: #047954;
+      margin-top: 10px;
+    }
+
     #loader {
       display: none;
       border: 6px solid #f3f3f3;
@@ -97,12 +110,8 @@
       100% { transform: rotate(360deg);}
     }
 
-    #countdown {
-      font-size: 2.5rem;
-      font-weight: bold;
-      text-align: center;
-      margin-top: 10px;
-      color: #047954;
+    canvas {
+      display: none;
     }
   </style>
 </head>
@@ -111,9 +120,9 @@
 <div id="app-container">
   <main id="landing">
     <h1>Roso Tuban</h1>
+    <p style="margin:0">Jejak Budaya, Pesona Wisata</p>
+    <img src="https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban.png?updatedAt=1747645295166" style="width:160px; border-radius:14px;">
     <button class="button" id="start-btn">Mulai Foto</button>
-    <p>Jejak Budaya, Pesona Wisata</p>
-    <img src="https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban.png?updatedAt=1747645295166" style="width:170px; border-radius:14px;">
   </main>
 
   <section id="camera-container">
@@ -136,105 +145,106 @@
     </div>
   </section>
 
-  <canvas id="canvas" style="display:none;"></canvas>
+  <canvas id="canvas"></canvas>
 </div>
 
 <script>
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  const startBtn = document.getElementById('start-btn');
-  const cameraContainer = document.getElementById('camera-container');
-  const previewContainer = document.getElementById('preview-container');
-  const photoPreview = document.getElementById('photo-preview');
-  const countdown = document.getElementById('countdown');
-  const loader = document.getElementById('loader');
-  const takePhotoBtn = document.getElementById('take-photo-btn');
-  const retakeBtn = document.getElementById('retake-btn');
-  const printBtn = document.getElementById('print-btn');
-  const cameraControls = document.getElementById('camera-controls');
+  document.addEventListener("DOMContentLoaded", () => {
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const startBtn = document.getElementById('start-btn');
+    const cameraContainer = document.getElementById('camera-container');
+    const previewContainer = document.getElementById('preview-container');
+    const photoPreview = document.getElementById('photo-preview');
+    const countdown = document.getElementById('countdown');
+    const loader = document.getElementById('loader');
+    const takePhotoBtn = document.getElementById('take-photo-btn');
+    const retakeBtn = document.getElementById('retake-btn');
+    const printBtn = document.getElementById('print-btn');
+    const cameraControls = document.getElementById('camera-controls');
+    let stream = null;
 
-  let stream = null;
-
-  async function startCamera() {
-    try {
-      loader.style.display = 'block';
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-      video.srcObject = stream;
-      document.getElementById('landing').style.display = 'none';
-      cameraContainer.style.display = 'block';
-      cameraControls.style.display = 'block';
-      loader.style.display = 'none';
-    } catch (e) {
-      alert('Kamera tidak bisa diakses. Pastikan izin kamera sudah diberikan.');
+    async function startCamera() {
+      try {
+        loader.style.display = 'block';
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        video.srcObject = stream;
+        document.getElementById('landing').style.display = 'none';
+        cameraContainer.style.display = 'block';
+        cameraControls.style.display = 'block';
+        loader.style.display = 'none';
+      } catch (e) {
+        alert('Kamera tidak bisa diakses. Pastikan izin kamera sudah diberikan.');
+      }
     }
-  }
 
-  function stopCamera() {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      video.srcObject = null;
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+      }
     }
-  }
 
-  function startCountdown(seconds = 3) {
-    return new Promise(resolve => {
-      let count = seconds;
-      countdown.textContent = count;
-      const timer = setInterval(() => {
-        count--;
-        countdown.textContent = count > 0 ? count : '';
-        if (count <= 0) {
-          clearInterval(timer);
-          resolve();
-        }
-      }, 1000);
-    });
-  }
+    function startCountdown(seconds = 3) {
+      return new Promise(resolve => {
+        let count = seconds;
+        countdown.textContent = count;
+        const timer = setInterval(() => {
+          count--;
+          countdown.textContent = count > 0 ? count : '';
+          if (count <= 0) {
+            clearInterval(timer);
+            resolve();
+          }
+        }, 1000);
+      });
+    }
 
-  async function takePhoto() {
-    takePhotoBtn.disabled = true;
-    await startCountdown(3);
-    const ctx = canvas.getContext('2d');
-    const size = Math.min(video.videoWidth, video.videoHeight);
-    canvas.width = canvas.height = size;
-    ctx.drawImage(video, (video.videoWidth - size) / 2, (video.videoHeight - size) / 2, size, size, 0, 0, size, size);
+    async function takePhoto() {
+      takePhotoBtn.disabled = true;
+      await startCountdown(3);
+      const ctx = canvas.getContext('2d');
+      const size = Math.min(video.videoWidth, video.videoHeight);
+      canvas.width = canvas.height = size;
+      ctx.drawImage(video, (video.videoWidth - size) / 2, (video.videoHeight - size) / 2, size, size, 0, 0, size, size);
 
-    const frame = new Image();
-    frame.src = 'https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban%202.png?updatedAt=1747658946104';
-    await new Promise(r => frame.onload = r);
-    ctx.drawImage(frame, 0, 0, size, size);
+      const frame = new Image();
+      frame.src = 'https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban%202.png?updatedAt=1747658946104';
+      await new Promise(r => frame.onload = r);
+      ctx.drawImage(frame, 0, 0, size, size);
 
-    photoPreview.src = canvas.toDataURL('image/png');
-    cameraContainer.style.display = 'none';
-    cameraControls.style.display = 'none';
-    previewContainer.style.display = 'block';
-    stopCamera();
-    takePhotoBtn.disabled = false;
-  }
+      photoPreview.src = canvas.toDataURL('image/png');
+      cameraContainer.style.display = 'none';
+      cameraControls.style.display = 'none';
+      previewContainer.style.display = 'block';
+      stopCamera();
+      takePhotoBtn.disabled = false;
+    }
 
-  startBtn.onclick = () => startCamera();
-  takePhotoBtn.onclick = () => takePhoto();
-  retakeBtn.onclick = () => {
-    previewContainer.style.display = 'none';
-    startCamera();
-  };
-  printBtn.onclick = () => {
-    const win = window.open('', '_blank');
-    win.document.write(`
-      <html><head><style>
-        body { margin: 0; }
-        img { width: 10cm; height: 10cm; object-fit: cover; }
-        @page { size: 10cm 10cm; margin: 0; }
-      </style></head>
-      <body><img src="${photoPreview.src}" /></body>
-      <script>
-        window.onload = () => setTimeout(() => { window.print(); }, 300);
-        window.onafterprint = () => window.close();
-      </script>
-      </html>
-    `);
-    win.document.close();
-  };
+    startBtn.onclick = () => startCamera();
+    takePhotoBtn.onclick = () => takePhoto();
+    retakeBtn.onclick = () => {
+      previewContainer.style.display = 'none';
+      startCamera();
+    };
+    printBtn.onclick = () => {
+      const win = window.open('', '_blank');
+      win.document.write(`
+        <html><head><style>
+          body { margin: 0; }
+          img { width: 10cm; height: 10cm; object-fit: cover; }
+          @page { size: 10cm 10cm; margin: 0; }
+        </style></head>
+        <body><img src="${photoPreview.src}" /></body>
+        <script>
+          window.onload = () => setTimeout(() => { window.print(); }, 300);
+          window.onafterprint = () => window.close();
+        </script>
+        </html>
+      `);
+      win.document.close();
+    };
+  });
 </script>
 </body>
 </html>
