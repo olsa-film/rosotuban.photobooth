@@ -1,129 +1,184 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Roso Tuban - Self Photobooth</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Self PhotoBooth AI</title>
   <style>
-    body, html {
+    body {
       margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: sans-serif;
-      background: #fafae4;
-      color: #37472E;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f0f0;
+      overflow: hidden;
     }
-    #app-container {
+
+    .container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #0d0d0d;
+    }
+
+    .landing {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom right, #4facfe, #00f2fe);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      padding: 2rem;
-      max-width: 480px;
-      margin: auto;
+      z-index: 2;
+      transition: opacity 0.6s ease-in-out;
     }
+
+    .landing.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .title {
+      font-size: 3rem;
+      color: white;
+      margin-bottom: 2rem;
+      animation: floatText 3s ease-in-out infinite;
+    }
+
+    @keyframes floatText {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
     .button {
       padding: 1rem 2rem;
-      background-color: #047954;
-      color: white;
-      border: none;
-      border-radius: 30px;
       font-size: 1.2rem;
+      border: none;
+      background-color: white;
+      color: #333;
+      border-radius: 12px;
       cursor: pointer;
-      margin: 1rem;
+      transition: all 0.3s;
     }
+
     .button:hover {
-      background-color: #059a6a;
+      background-color: #ddd;
     }
-    #camera-container, #preview-container {
+
+    .camera-container {
       display: none;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+      z-index: 1;
     }
-    video, canvas, img {
-      width: 300px;
-      height: 300px;
-      border-radius: 12px;
+
+    .camera-container.active {
+      display: flex;
+    }
+
+    .frame {
+      width: 640px;
+      height: 480px;
+      border: 16px solid white;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      border-radius: 30px;
+      position: relative;
+      background-color: #000;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      border-radius: 14px;
       object-fit: cover;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-    #overlay-frame {
-      position: absolute;
-      width: 300px;
-      height: 300px;
-      pointer-events: none;
+
+    canvas {
+      display: none;
+    }
+
+    .capture-btn {
+      margin-top: 1rem;
+      padding: 0.8rem 1.8rem;
+      font-size: 1rem;
+      border: none;
+      background-color: #00f2fe;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .capture-btn:hover {
+      background-color: #4facfe;
+    }
+
+    .photo-output {
+      margin-top: 1rem;
+    }
+
+    .photo-output img {
+      max-width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
   </style>
 </head>
 <body>
-<div id="app-container">
-  <div id="landing">
-    <h1>Roso Tuban</h1>
-    <p>Jejak Budaya, Pesona Wisata</p>
-    <button class="button" id="start-btn">Mulai Foto</button>
+
+<div class="container">
+  <!-- Landing Page -->
+  <div class="landing" id="landingPage">
+    <div class="title">Welcome to Self PhotoBooth</div>
+    <button class="button" onclick="startCamera()">Mulai Foto</button>
   </div>
 
-  <div id="camera-container">
-    <div style="position: relative;">
+  <!-- Kamera + Frame -->
+  <div class="camera-container" id="cameraContainer">
+    <div class="frame">
       <video id="video" autoplay playsinline></video>
-      <div id="overlay-frame">
-        <img src="https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban.png" alt="Frame" style="width: 100%; height: 100%;" />
-      </div>
     </div>
-    <button class="button" id="take-photo-btn">Ambil Foto</button>
-  </div>
-
-  <div id="preview-container">
-    <canvas id="canvas" width="300" height="300" style="display:none;"></canvas>
-    <img id="photo-preview" alt="Hasil Foto">
-    <a id="download-link" class="button" download="foto-rosotuban.png">Unduh Foto</a>
-    <button class="button" id="ulang-btn">Ulangi</button>
+    <button class="capture-btn" onclick="capturePhoto()">Ambil Foto</button>
+    <div class="photo-output" id="photoOutput"></div>
   </div>
 </div>
 
+<canvas id="canvas" width="640" height="480"></canvas>
+
 <script>
-  const startBtn = document.getElementById('start-btn');
-  const cameraContainer = document.getElementById('camera-container');
-  const landing = document.getElementById('landing');
-  const takePhotoBtn = document.getElementById('take-photo-btn');
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
-  const previewContainer = document.getElementById('preview-container');
-  const photoPreview = document.getElementById('photo-preview');
-  const downloadLink = document.getElementById('download-link');
-  const ulangBtn = document.getElementById('ulang-btn');
+  const context = canvas.getContext('2d');
+  const photoOutput = document.getElementById('photoOutput');
+  const landingPage = document.getElementById('landingPage');
+  const cameraContainer = document.getElementById('cameraContainer');
 
-  let stream;
-  let frameImage = new Image();
-  frameImage.crossOrigin = "anonymous";
-  frameImage.src = "https://ik.imagekit.io/cei9xcerp/Artboard%201frame%20tuban.png";
+  async function startCamera() {
+    landingPage.classList.add('hidden');
+    cameraContainer.classList.add('active');
 
-  startBtn.addEventListener('click', async () => {
-    landing.style.display = 'none';
-    cameraContainer.style.display = 'flex';
-    stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = stream;
-  });
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+    } catch (error) {
+      alert('Kamera tidak bisa diakses: ' + error);
+    }
+  }
 
-  takePhotoBtn.addEventListener('click', () => {
-    const context = canvas.getContext('2d');
+  function capturePhoto() {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    context.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
-    const imageDataUrl = canvas.toDataURL('image/png');
-    photoPreview.src = imageDataUrl;
-    downloadLink.href = imageDataUrl;
-    cameraContainer.style.display = 'none';
-    previewContainer.style.display = 'flex';
-    stream.getTracks().forEach(track => track.stop());
-  });
+    const imageData = canvas.toDataURL('image/png');
 
-  ulangBtn.addEventListener('click', () => {
-    previewContainer.style.display = 'none';
-    landing.style.display = 'flex';
-    photoPreview.src = '';
-    downloadLink.href = '';
-  });
+    const img = document.createElement('img');
+    img.src = imageData;
+    photoOutput.innerHTML = '';
+    photoOutput.appendChild(img);
+  }
 </script>
+
 </body>
 </html>
